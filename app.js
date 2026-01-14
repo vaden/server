@@ -1,43 +1,28 @@
 const express = require("express");
+const mongoose = require("mongoose");
+const bookRoutes = require("./routes/book");
+const userRoutes = require("./routes/user");
+const path = require("path");
 const app = express();
-const port = 3000;
 
-app.post("/api/auth/signup", (req, res) => {
-  res.send("Hello world !");
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+  );
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  next();
 });
 
-app.post("/api/auth/login", (req, res) => {
-  res.send("Hello world !");
-});
+app.use(express.json());
 
-app.get("/api/books", (req, res) => {
-  res.send("Hello world !");
-});
+app.use("/api/books", bookRoutes);
+app.use("/api/auth", userRoutes);
+app.use("/images", express.static(path.join(__dirname, "images")));
 
-app.get("/api/books/:id", (req, res) => {
-  res.send("Hello world !");
-});
-
-app.get("/api/books/bestrating", (req, res) => {
-  res.send("Hello world !");
-});
-
-app.post("/api/books", (req, res) => {
-  res.send("Hello world !");
-});
-
-app.put("/api/books/:id", (req, res) => {
-  res.send("Hello world !");
-});
-
-app.delete("/api/books/:id", (req, res) => {
-  res.send("Hello world !");
-});
-
-app.post("/api/books/:id/rating", (req, res) => {
-  res.send("Hello world !");
-});
-
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
-});
+module.exports = app;
