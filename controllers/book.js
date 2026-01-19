@@ -3,13 +3,13 @@ const fs = require('fs');
 
 exports.createBook = (req, res, next) => {
   const bookObject = JSON.parse(req.body.book);
+
   delete bookObject._id;
   delete bookObject._userId;
+
   const book = new Book({
     ...bookObject,
     userId: bookObject.userId,
-    ratings: [],
-    averageRating: 0,
     imageUrl: `${req.protocol}://${req.get('host')}/images/${
       req.file.filename
     }`,
@@ -22,7 +22,9 @@ exports.createBook = (req, res, next) => {
       });
     })
     .catch((error) => {
-      console.log(error);
+      if (req.file) {
+        fs.unlink(`images/${req.file.filename}`, () => {});
+      }
       res.status(400).json({
         error: error,
       });
@@ -127,6 +129,10 @@ exports.getBestRatedBooks = (req, res) => {
   Book.find()
     .sort({ averageRating: -1 })
     .limit(3)
-    .then((books) => res.status(200).json(books))
-    .catch((error) => res.status(400).json({ error }));
+    .then((books) => {
+      res.status(200).json(books);
+    })
+    .catch((error) => {
+      res.status(400).json({ error });
+    });
 };
