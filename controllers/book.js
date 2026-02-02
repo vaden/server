@@ -51,17 +51,34 @@ exports.modifyBook = (req, res) => {
   Book.findOne({ _id: req.params.id })
     .then((book) => {
       if (book.userId != req.auth.userId) {
+        if (req.file) {
+          fs.unlink(`images/${req.file.filename}`, () => {});
+        }
         res.status(401).json({ message: 'Not authorized' });
       } else {
+        const oldFilename = book.imageUrl.split('/images/')[1];
         Book.updateOne(
           { _id: req.params.id },
           { ...bookObject, _id: req.params.id }
         )
-          .then(() => res.status(200).json({ message: 'Livre modifié!' }))
-          .catch((error) => res.status(401).json({ error }));
+          .then(() => {
+            if (req.file && oldFilename) {
+              fs.unlink(`images/${oldFilename}`, () => {});
+            }
+            res.status(200).json({ message: 'Livre modifié!' });
+          })
+          .catch((error) => {
+            if (req.file) {
+              fs.unlink(`images/${req.file.filename}`, () => {});
+            }
+            res.status(401).json({ error });
+          });
       }
     })
     .catch((error) => {
+      if (req.file) {
+        fs.unlink(`images/${req.file.filename}`, () => {});
+      }
       res.status(400).json({ error });
     });
 };
